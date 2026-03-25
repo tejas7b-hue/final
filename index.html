@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 💙</title>
+
+<style>
+
+/* 🌌 BACKGROUND */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+
+  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+              url('./bg.jpg') no-repeat center center/cover;
+
+  height: 100vh;
+  overflow: hidden;
+  color: white;
+}
+
+/* 🎬 INTRO (NO BLUR NOW) */
+#intro {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 10;
+}
+
+/* BUTTON */
+#startBtn {
+  padding: 12px 25px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(0,0,0,0.4);
+  color: white;
+  cursor: pointer;
+}
+
+/* MAIN CONTAINER */
+.container {
+  display: none;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}
+
+/* CARD (NO GLASS EFFECT) */
+.card {
+  width: 90%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+  background: rgba(0,0,0,0.4); /* simple transparent */
+}
+
+/* INPUT */
+input {
+  padding: 12px;
+  width: 90%;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+}
+
+/* BUTTONS */
+button {
+  padding: 12px;
+  margin: 10px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  width: 45%;
+  background: rgba(0,0,0,0.4);
+  color: white;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.08);
+}
+
+.login, .next { width: 100%; }
+
+/* 🎥 VIDEO */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+/* SECTIONS */
+#mainContent, #responseSection, #nextBtn {
+  display: none;
+}
+
+/* 🔊 VOLUME */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.volume-control span {
+  font-size: 18px;
+}
+
+.volume-control input {
+  flex: 1;
+}
+
+/* 📱 SIDE VOLUME */
+.side-volume {
+  position: fixed;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  height: 150px;
+  z-index: 20;
+}
+
+.side-volume input {
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 120px;
+}
+
+/* 💖 HEARTS */
+.heart {
+  position: fixed;
+  animation: rise 2s linear forwards;
+}
+
+@keyframes rise {
+  from { transform: translateY(0); }
+  to { transform: translateY(-200px); opacity: 0; }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- 🎬 INTRO -->
+<div id="intro">
+  <h1>For You 💙</h1>
+  <button id="startBtn">Tap to Begin</button>
+</div>
+
+<!-- 🎧 AUDIO -->
+<audio id="bgMusic" loop>
+  <source src="bgm.mp3" type="audio/mpeg">
+</audio>
+
+<!-- MAIN -->
+<div class="container" id="app">
+
+  <div class="card">
+
+    <!-- 🔊 VOLUME -->
+    <div class="volume-control">
+      <span id="volIcon">🔊</span>
+      <input type="range" min="0" max="1" step="0.01" value="0.7"
+      onchange="setVolume(this.value)">
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginBox">
+      <h2>Enter Password</h2>
+      <input type="password" id="password">
+      <button class="login" onclick="checkPassword()">Enter</button>
+    </div>
+
+    <!-- VIDEO -->
+    <div id="mainContent">
+      <div class="video-wrapper">
+        <iframe src="https://drive.google.com/file/d/1SN-PuFLeTLt10LqRROZMPQrERYDuXHIO/preview" allow="autoplay"></iframe>
+      </div>
+      <button id="nextBtn" class="next" onclick="goToResponse()">Continue</button>
+    </div>
+
+    <!-- RESPONSE -->
+    <div id="responseSection">
+      <h3>shd i create a blogspot for both of us sweetie !?/?</h3>
+      <button onclick="submitResponse('Yes')">Yes 💖</button>
+      <button onclick="submitResponse('No')">No 💙</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "AIzaSyBfg5Zyx_ooD5JbcV4c-pYbWxI-ic8uDHQ",
+  authDomain: "prototype-fb32a.firebaseapp.com",
+  projectId: "prototype-fb32a",
+  storageBucket: "prototype-fb32a.firebasestorage.app",
+  messagingSenderId: "380131016987",
+  appId: "1:380131016987:web:3baf8e058fae94701113be"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const music = document.getElementById("bgMusic");
+
+/* START */
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+
+  music.volume = 0.7; // ✅ DEFAULT 70%
+  music.play();
+};
+
+/* VOLUME */
+window.setVolume = function(val) {
+  music.volume = val;
+  const icon = document.getElementById("volIcon");
+
+  if (val == 0) icon.innerText = "🔇";
+  else if (val < 0.5) icon.innerText = "🔉";
+  else icon.innerText = "🔊";
+};
+
+/* LOGIN */
+window.checkPassword = function() {
+  if (document.getElementById("password").value === "vismaya") {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+
+    music.pause();
+
+    setTimeout(() => {
+      document.getElementById("nextBtn").style.display = "block";
+    }, 20000);
+  }
+};
+
+/* CONTINUE */
+window.goToResponse = function() {
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("responseSection").style.display = "block";
+
+  music.play();
+
+  document.querySelector(".volume-control").classList.add("side-volume");
+};
+
+/* HEARTS */
+function createHeart() {
+  const h = document.createElement("div");
+  h.className = "heart";
+  h.innerText = "💖";
+  h.style.left = Math.random()*100+"%";
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),2000);
+}
+
+/* SUBMIT */
+window.submitResponse = async function(ans) {
+  for(let i=0;i<10;i++) createHeart();
+
+  try {
+    await addDoc(collection(db,"responses"),{
+      response: ans,
+      time: new Date().toISOString()
+    });
+
+    alert("Response saved 💙");
+
+  } catch (error) {
+    console.error(error);
+    alert("Error saving response");
+  }
+};
+
+</script>
+
+</body>
+</html>
